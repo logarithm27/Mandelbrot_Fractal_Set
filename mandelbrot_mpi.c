@@ -1,5 +1,5 @@
 //
-// Created by MftOmar on 1/27/2020.
+// Created by maftoul on 1/27/2020.
 // CLion Jetbrains
 //
 #include <stdio.h>
