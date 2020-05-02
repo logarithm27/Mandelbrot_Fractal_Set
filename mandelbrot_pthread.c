@@ -1,5 +1,6 @@
 //
-// Created by maftoul on 09/02/2020.
+// Created by maftoul on 1/27/2020.
+// CLion Jetbrains
 //
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,8 +8,6 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
-// gcc -pthread -o <target_object_file_name.o> <target_object_file_name.c>
-
 #include <pthread.h>
 #include "mystack.h"
 
@@ -20,9 +19,9 @@
 #define X_MIN -2
 #define X_MAX 2
 #define RESOLUTION 0.001
-#define NUMBER_OF_THREADS 2
+#define NUMBER_OF_THREADS 12
 #define OUTFILE "mandelbrot_parallel.out"
-#define N_ITER_MAX 400
+#define N_ITER_MAX 1000
 
 
 struct data {
@@ -97,30 +96,6 @@ int main(int argc, char *argv[])
         printf("Memory allocation error, error Nb : %d (%s) .\n",errno,strerror(errno));
         return EXIT_FAILURE;
     }
-    struct stack_of_iteration_intervals * stack_of_intervals_iter = createStack(NUMBER_OF_THREADS*NUMBER_OF_THREADS);
-    int j = 0;
-    int previous_min_is_max_now = 0;
-    int n_iter_max = N_ITER_MAX;
-    int step = N_ITER_MAX/NUMBER_OF_THREADS;
-    while(j < NUMBER_OF_THREADS)
-    {
-        if( j == 0 ) {
-            push(stack_of_intervals_iter, n_iter_max);
-            previous_min_is_max_now = n_iter_max - step;
-            push(stack_of_intervals_iter,previous_min_is_max_now);
-        }
-        if(j > 0) {
-            int max = previous_min_is_max_now;
-            push(stack_of_intervals_iter, max);
-            int min = max - step;
-            push(stack_of_intervals_iter, min);
-            previous_min_is_max_now = min;
-        }
-
-        j++;
-    }
-
-
     pthread_t * thread_array_id = malloc(NUMBER_OF_THREADS * sizeof(pthread_t));
     /*allocating memory of the pointer on the struct*/
     /*reminder : pointer_on_my_struct is equivalent to typeof(pointer_on_plot_data) and also equivalent to (struct data *pointer_on_plot_data */
@@ -129,10 +104,11 @@ int main(int argc, char *argv[])
     pointer_on_my_struct my_data_struct = malloc(NUMBER_OF_THREADS * sizeof(my_data));
     clock_t begin = clock();
 
-    for(int i = 0; i < NUMBER_OF_THREADS; i++)
+    for(int i = 1; i <= NUMBER_OF_THREADS; i++)
     {
-        my_data_struct[i].n_iter_min = pop(stack_of_intervals_iter);
-        my_data_struct[i].n_iter_max = pop(stack_of_intervals_iter);
+
+        my_data_struct[i].n_iter_min = (int)((float)(nb_pixel_x) * ((float)(i-1)/(float)NUMBER_OF_THREADS));
+        my_data_struct[i].n_iter_max = (int)((float)(nb_pixel_x) * ((float)i/(float)NUMBER_OF_THREADS));
 
         pthread_t pth;
         pthread_create(&pth, NULL, mandelbrot_thread, (generic_pointer) &my_data_struct[i]);
@@ -140,7 +116,7 @@ int main(int argc, char *argv[])
         thread_array_id[i] = pth;
     }
 
-    for(int i = 0; i < NUMBER_OF_THREADS; i++)
+    for(int i = 1; i <= NUMBER_OF_THREADS; i++)
     {
         pthread_join(thread_array_id[i], NULL);
         printf("Thread %d terminated\n",(int)thread_array_id[i]);
@@ -148,7 +124,7 @@ int main(int argc, char *argv[])
 
     clock_t end = clock();
     double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-    printf("time execution %f seconds", time_spent);
+    printf("time execution %f seconds while calculating points : ", time_spent);
     FILE * output_file;
     if( (output_file = fopen(OUTFILE,"w")) == NULL )
     {
