@@ -23,27 +23,9 @@
 #define OUTFILE "mandelbrot_parallel_open_mp.out"
 #define N_ITER_MAX 1000
 
-// Global Variables
-int * iter_tab;
-int nb_pixel_y;
-int nb_pixel_x;
 
-/* the structure that holds all the essential components
-of our thread
-*/
-
-/*
-instead of declaring a little complex pointer on our struct
- when we aim to define a variable of type " (1) struct data *pointer_on_plot_data ",
- we add after the closing curly brace of our struct a pointer,
- it's used to declare (1) on our thread function
- */
 int main(int argc, char *argv[])
 {
-    /*
-     * pointer_on_plot_data is equivalent to " struct data *pointer_on_plot_data
-     * the typeof(pointer_on_plot_data) will have a pointer on a data struct
-     * */
     nb_pixel_x = (int) ceil((X_MAX - X_MIN) / RESOLUTION);
     nb_pixel_y = (int) ceil((Y_MAX - Y_MIN) / RESOLUTION);
 
